@@ -38,9 +38,27 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
     _saveData();
   }
 
-  _deleteHabit(int index) {
-    setState(() => habits.removeAt(index));
-    _saveData();
+  // 🔥 Long Press Confirm Delete Logic 🔥
+  _confirmDelete(int index) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF111827),
+        title: const Text("Delete Habit?", style: TextStyle(color: Colors.white)),
+        content: const Text("Are you sure you want to delete this habit?", style: TextStyle(color: Colors.white70)),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text("Cancel", style: TextStyle(color: Colors.white54))),
+          TextButton(
+            onPressed: () { 
+              setState(() => habits.removeAt(index)); 
+              _saveData(); 
+              Navigator.pop(ctx); 
+            }, 
+            child: const Text("Delete", style: TextStyle(color: Colors.redAccent))
+          ),
+        ],
+      )
+    );
   }
 
   @override
@@ -56,12 +74,13 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
             color: const Color(0xFF111827),
             margin: const EdgeInsets.only(bottom: 12),
             child: ListTile(
+              onLongPress: () => _confirmDelete(index), // Yahan long press lagaya gaya hai
               leading: IconButton(
                 icon: Icon(isDone ? Icons.check_circle : Icons.circle_outlined, color: isDone ? Colors.greenAccent : Colors.white54),
                 onPressed: () => _toggleHabit(index),
               ),
               title: Text(habits[index]["name"], style: TextStyle(color: Colors.white, decoration: isDone ? TextDecoration.lineThrough : null)),
-              trailing: IconButton(icon: const Icon(Icons.delete, color: Colors.redAccent), onPressed: () => _deleteHabit(index)),
+              // Delete icon trailing se hata diya gaya hai
             ),
           );
         },
