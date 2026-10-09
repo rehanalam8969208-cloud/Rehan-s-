@@ -38,9 +38,27 @@ class _GoalsTrackerScreenState extends State<GoalsTrackerScreen> {
     _saveData();
   }
 
-  _deleteGoal(int index) {
-    setState(() => goals.removeAt(index));
-    _saveData();
+  // 🔥 Long Press Confirm Delete Logic 🔥
+  _confirmDelete(int index) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF111827),
+        title: const Text("Delete Goal?", style: TextStyle(color: Colors.white)),
+        content: const Text("Are you sure you want to delete this goal?", style: TextStyle(color: Colors.white70)),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text("Cancel", style: TextStyle(color: Colors.white54))),
+          TextButton(
+            onPressed: () { 
+              setState(() => goals.removeAt(index)); 
+              _saveData(); 
+              Navigator.pop(ctx); 
+            }, 
+            child: const Text("Delete", style: TextStyle(color: Colors.redAccent))
+          ),
+        ],
+      )
+    );
   }
 
   @override
@@ -53,46 +71,43 @@ class _GoalsTrackerScreenState extends State<GoalsTrackerScreen> {
         itemBuilder: (context, index) {
           double progress = goals[index]["current"] / goals[index]["target"];
           if (progress > 1.0) progress = 1.0;
-          return Card(
-            color: const Color(0xFF111827),
-            margin: const EdgeInsets.only(bottom: 15),
-            child: Padding(
-              padding: const EdgeInsets.all(15.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(goals[index]["title"], style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
-                      IconButton(icon: const Icon(Icons.delete, color: Colors.redAccent, size: 20), onPressed: () => _deleteGoal(index))
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-                  LinearProgressIndicator(value: progress, backgroundColor: Colors.white12, color: const Color(0xFFE91E63), minHeight: 8),
-                  const SizedBox(height: 10),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text("₹${goals[index]["current"]} / ₹${goals[index]["target"]}", style: const TextStyle(color: Colors.white54)),
-                      GestureDetector(
-                        onTap: () {
-                          TextEditingController ctrl = TextEditingController();
-                          showDialog(
-                            context: context,
-                            builder: (ctx) => AlertDialog(
-                              backgroundColor: const Color(0xFF111827),
-                              title: const Text("Add Progress Amount", style: TextStyle(color: Colors.white)),
-                              content: TextField(controller: ctrl, keyboardType: TextInputType.number, style: const TextStyle(color: Colors.white)),
-                              actions: [TextButton(onPressed: () { _addProgress(index, double.parse(ctrl.text)); Navigator.pop(ctx); }, child: const Text("Add"))],
-                            )
-                          );
-                        },
-                        child: const Text("+ Add ₹", style: TextStyle(color: Color(0xFFE91E63), fontWeight: FontWeight.bold)),
-                      )
-                    ],
-                  )
-                ],
+          return GestureDetector(
+            onLongPress: () => _confirmDelete(index), // Yahan long press lagaya gaya hai
+            child: Card(
+              color: const Color(0xFF111827),
+              margin: const EdgeInsets.only(bottom: 15),
+              child: Padding(
+                padding: const EdgeInsets.all(15.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(goals[index]["title"], style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 10),
+                    LinearProgressIndicator(value: progress, backgroundColor: Colors.white12, color: const Color(0xFFE91E63), minHeight: 8),
+                    const SizedBox(height: 10),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text("₹${goals[index]["current"]} / ₹${goals[index]["target"]}", style: const TextStyle(color: Colors.white54)),
+                        GestureDetector(
+                          onTap: () {
+                            TextEditingController ctrl = TextEditingController();
+                            showDialog(
+                              context: context,
+                              builder: (ctx) => AlertDialog(
+                                backgroundColor: const Color(0xFF111827),
+                                title: const Text("Add Progress Amount", style: TextStyle(color: Colors.white)),
+                                content: TextField(controller: ctrl, keyboardType: TextInputType.number, style: const TextStyle(color: Colors.white)),
+                                actions: [TextButton(onPressed: () { _addProgress(index, double.parse(ctrl.text)); Navigator.pop(ctx); }, child: const Text("Add"))],
+                              )
+                            );
+                          },
+                          child: const Text("+ Add ₹", style: TextStyle(color: Color(0xFFE91E63), fontWeight: FontWeight.bold)),
+                        )
+                      ],
+                    )
+                  ],
+                ),
               ),
             ),
           );
