@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
 import 'money_tracker.dart';
 import 'habit_tracker.dart';
 import 'goals_tracker.dart';
@@ -27,8 +29,48 @@ class RehansApp extends StatelessWidget {
   }
 }
 
-class DashboardScreen extends StatelessWidget {
+class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
+
+  @override
+  State<DashboardScreen> createState() => _DashboardScreenState();
+}
+
+class _DashboardScreenState extends State<DashboardScreen> {
+  double totalBalance = 0.0;
+  double percentage = 0.0;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSummaryData();
+  }
+
+  // 🔥 Database se Asli Paisa Padhne ka Logic 🔥
+  _loadSummaryData() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? txData = prefs.getString('transactions');
+    double tempBalance = 0.0;
+    double totalIncome = 0.0;
+
+    if (txData != null) {
+      List txList = json.decode(txData);
+      for (var tx in txList) {
+        tempBalance += tx['amount'];
+        if (tx['amount'] > 0) totalIncome += tx['amount'];
+      }
+    }
+
+    setState(() {
+      totalBalance = tempBalance;
+      // Agar income hai, toh percentage nikalega, warna 0.0 rahega
+      if (totalIncome > 0) {
+        percentage = (totalBalance / totalIncome) * 100;
+      } else {
+        percentage = 0.0;
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -40,7 +82,7 @@ class DashboardScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              //  STOCK MARKET STYLE DASHBOARD 
+              // 🔥 DYNAMIC STOCK MARKET STYLE DASHBOARD 🔥
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(24),
@@ -56,46 +98,47 @@ class DashboardScreen extends StatelessWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Column(
+                        Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text("Total Net Worth", style: TextStyle(color: Colors.white54, fontSize: 14)),
-                            SizedBox(height: 5),
-                            Text("₹ 4,850.00", style: TextStyle(color: Colors.white, fontSize: 30, fontWeight: FontWeight.bold)),
+                            const Text("Total Net Worth", style: TextStyle(color: Colors.white54, fontSize: 14)),
+                            const SizedBox(height: 5),
+                            // Yahan ab Asli total balance update hoga
+                            Text("₹ ${totalBalance.toStringAsFixed(2)}", style: const TextStyle(color: Colors.white, fontSize: 30, fontWeight: FontWeight.bold)),
                           ],
                         ),
-                        // Profit Indicator
+                        // Dynamic Indicator (Profit/Loss ke hisaab se Red ya Green hoga)
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                           decoration: BoxDecoration(
-                            color: Colors.greenAccent.withOpacity(0.1),
+                            color: (totalBalance >= 0 ? Colors.greenAccent : Colors.redAccent).withOpacity(0.1),
                             borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: Colors.greenAccent.withOpacity(0.5)),
+                            border: Border.all(color: (totalBalance >= 0 ? Colors.greenAccent : Colors.redAccent).withOpacity(0.5)),
                           ),
-                          child: const Row(
+                          child: Row(
                             children: [
-                              Icon(Icons.arrow_upward, color: Colors.greenAccent, size: 16),
-                              SizedBox(width: 4),
-                              Text("12.5%", style: TextStyle(color: Colors.greenAccent, fontWeight: FontWeight.bold)),
+                              Icon(totalBalance >= 0 ? Icons.arrow_upward : Icons.arrow_downward, color: totalBalance >= 0 ? Colors.greenAccent : Colors.redAccent, size: 16),
+                              const SizedBox(width: 4),
+                              Text("${percentage.toStringAsFixed(1)}%", style: TextStyle(color: totalBalance >= 0 ? Colors.greenAccent : Colors.redAccent, fontWeight: FontWeight.bold)),
                             ],
                           ),
                         )
                       ],
                     ),
                     const SizedBox(height: 30),
-                    // Candlesticks Pattern Simulation
+                    // Candlesticks Pattern
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: List.generate(8, (index) {
-                        bool isBullish = index % 2 != 0 || index == 7; // Green or Red
+                        bool isBullish = index % 2 != 0 || index == 7;
                         double bodyHeight = isBullish ? 30.0 + (index * 5) : 20.0 + (index * 3);
                         Color candleColor = isBullish ? Colors.greenAccent : Colors.redAccent;
                         return Column(
                           children: [
-                            Container(width: 1.5, height: 10, color: candleColor), // Upper Wick
-                            Container(width: 12, height: bodyHeight, decoration: BoxDecoration(color: candleColor, borderRadius: BorderRadius.circular(2))), // Body
-                            Container(width: 1.5, height: 10, color: candleColor), // Lower Wick
+                            Container(width: 1.5, height: 10, color: candleColor),
+                            Container(width: 12, height: bodyHeight, decoration: BoxDecoration(color: candleColor, borderRadius: BorderRadius.circular(2))),
+                            Container(width: 1.5, height: 10, color: candleColor),
                           ],
                         );
                       }),
@@ -126,7 +169,10 @@ class DashboardScreen extends StatelessWidget {
 
   Widget _buildMenuCard(BuildContext context, {required IconData icon, required String title, required Color color, required Widget page}) {
     return GestureDetector(
-      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => page)),
+      onTap: () {
+        // 🔥 JAB BHI AAP DUSRE PAGE SE BACK AAOGE, YEH DASHBOARD KO REFRESH KAREGA 🔥
+        Navigator.push(context, MaterialPageRoute(builder: (context) => page)).then((_) => _loadSummaryData());
+      },
       child: Container(
         decoration: BoxDecoration(color: const Color(0xFF111827), borderRadius: BorderRadius.circular(20), border: Border.all(color: color.withOpacity(0.3), width: 1.5)),
         child: Column(
