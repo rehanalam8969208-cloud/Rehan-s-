@@ -20,7 +20,7 @@ class RehansApp extends StatelessWidget {
         scaffoldBackgroundColor: const Color(0xFF0A0E21),
         primaryColor: const Color(0xFF246CFD),
         colorScheme: const ColorScheme.dark(primary: Color(0xFF246CFD), secondary: Color(0xFF00E676)),
-        appBarTheme: const AppBarTheme(backgroundColor: Color(0xFF0A0E21), elevation: 0, centerTitle: true, iconTheme: IconThemeData(color: Colors.white), titleTextStyle: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold)),
+        appBarTheme: const AppBarTheme(backgroundColor: Color(0xFF0A0E21), elevation: 0, centerTitle: true, iconTheme: IconThemeData(color: Colors.white), titleTextStyle: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
       ),
       home: const DashboardScreen(),
     );
@@ -40,15 +40,66 @@ class DashboardScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              //  STOCK MARKET STYLE DASHBOARD 
               Container(
-                width: double.infinity, padding: const EdgeInsets.all(24),
-                decoration: BoxDecoration(gradient: const LinearGradient(colors: [Color(0xFF246CFD), Color(0xFF1B4BB5)]), borderRadius: BorderRadius.circular(20)),
-                child: const Column(
+                width: double.infinity,
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF111827),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: const Color(0xFF246CFD).withOpacity(0.5), width: 1.5),
+                  boxShadow: [BoxShadow(color: const Color(0xFF246CFD).withOpacity(0.2), blurRadius: 20, offset: const Offset(0, 10))],
+                ),
+                child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text("Welcome Back,", style: TextStyle(color: Colors.white70, fontSize: 16)),
-                    SizedBox(height: 8),
-                    Text("Rehan", style: TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.bold)),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text("Total Net Worth", style: TextStyle(color: Colors.white54, fontSize: 14)),
+                            SizedBox(height: 5),
+                            Text("₹ 4,850.00", style: TextStyle(color: Colors.white, fontSize: 30, fontWeight: FontWeight.bold)),
+                          ],
+                        ),
+                        // Profit Indicator
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: Colors.greenAccent.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: Colors.greenAccent.withOpacity(0.5)),
+                          ),
+                          child: const Row(
+                            children: [
+                              Icon(Icons.arrow_upward, color: Colors.greenAccent, size: 16),
+                              SizedBox(width: 4),
+                              Text("12.5%", style: TextStyle(color: Colors.greenAccent, fontWeight: FontWeight.bold)),
+                            ],
+                          ),
+                        )
+                      ],
+                    ),
+                    const SizedBox(height: 30),
+                    // Candlesticks Pattern Simulation
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: List.generate(8, (index) {
+                        bool isBullish = index % 2 != 0 || index == 7; // Green or Red
+                        double bodyHeight = isBullish ? 30.0 + (index * 5) : 20.0 + (index * 3);
+                        Color candleColor = isBullish ? Colors.greenAccent : Colors.redAccent;
+                        return Column(
+                          children: [
+                            Container(width: 1.5, height: 10, color: candleColor), // Upper Wick
+                            Container(width: 12, height: bodyHeight, decoration: BoxDecoration(color: candleColor, borderRadius: BorderRadius.circular(2))), // Body
+                            Container(width: 1.5, height: 10, color: candleColor), // Lower Wick
+                          ],
+                        );
+                      }),
+                    ),
                   ],
                 ),
               ),
