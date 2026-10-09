@@ -17,6 +17,9 @@ jobs:
       uses: subosito/flutter-action@v2
       with:
         channel: 'stable'
+
+    - name: Create Android Base
+      run: flutter create --platforms android .
         
     - name: Get Dependencies
       run: flutter pub get
